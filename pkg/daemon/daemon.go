@@ -76,13 +76,7 @@ type legoAccount struct {
 
 	Registration *acme.RegistrationResource `json:"registration"`
 
-	dir string
-
 	privateKey crypto.PrivateKey
-}
-
-func (a *legoAccount) Dir() string {
-	return a.dir
 }
 
 func (a *legoAccount) GetEmail() string {
@@ -129,7 +123,6 @@ func loadLegoAccount(accountDir, email string) (*legoAccount, error) {
 		return &legoAccount{
 			Email:      email,
 			privateKey: privateKey,
-			dir:        accountDir,
 		}, nil
 	}
 	if err != nil {
