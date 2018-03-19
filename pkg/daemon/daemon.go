@@ -205,7 +205,7 @@ func writeCert(certificateDir string, certRes acme.CertificateResource) {
 
 	err = util.WriteFileAtomic(metadataFile, jsonBytes, 0600)
 	if err != nil {
-		log.Printf("Unable to save CertResource for domain %q\n\t%v", certRes.Domain, err)
+		log.Printf("[ERROR] Unable to save CertResource for domain %q\n\t%v", certRes.Domain, err)
 	}
 }
 
