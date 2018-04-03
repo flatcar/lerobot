@@ -35,7 +35,7 @@ AWS_HOSTED_ZONE_ID=ZXXXL
 AWS_REGION=eu-central-1
 ```
 
-Add a `lerobot.service`, enable and start it:
+Add a `lerobot.service` systemd unit:
 
 ```
 cat <<LEROBOT_SERVICE | sudo tee /etc/systemd/system/lerobot.service
