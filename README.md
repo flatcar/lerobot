@@ -116,7 +116,7 @@ https://acme-staging.api.letsencrypt.org/directory
 Users are allowed to rsync all certificates for their account to their
 machines. rsync is the only allowed command. In the default configuration,
 the remote source path must be set exactly like shown below, i.e.
-`certficiates/<email>/`. It's not possible to use a different path or
+`certificates/<email>/`. It's not possible to use a different path or
 to only sync a particular file.
 
 Example:
