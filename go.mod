@@ -15,6 +15,7 @@ require (
 	github.com/dnsimple/dnsimple-go v0.16.0 // indirect
 	github.com/edeckers/auroradnsclient v1.0.3 // indirect
 	github.com/exoscale/egoscale v0.9.11 // indirect
+	github.com/go-acme/lego v0.4.2-0.20180218152758-bacb545c7a26
 	github.com/go-ini/ini v1.33.0 // indirect
 	github.com/google/go-querystring v0.0.0-20170111101155-53e6ce116135 // indirect
 	github.com/hashicorp/hcl v0.0.0-20171017181929-23c074d0eceb // indirect
@@ -40,7 +41,7 @@ require (
 	github.com/spf13/viper v1.0.0
 	github.com/stretchr/testify v1.2.1 // indirect
 	github.com/timewasted/linode v0.0.0-20160829202747-37e84520dcf7 // indirect
-	github.com/xenolf/lego v0.4.2-0.20180218152758-bacb545c7a26
+	github.com/xenolf/lego v0.4.2-0.20180218152758-bacb545c7a26 // indirect
 	golang.org/x/oauth2 v0.0.0-20180312235849-7af32f14d0a2 // indirect
 	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e // indirect
 	google.golang.org/api v0.0.0-20180313183023-c24aa0e5ed34 // indirect

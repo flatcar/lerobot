@@ -20,8 +20,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/xenolf/lego/acme"
-	"github.com/xenolf/lego/providers/dns"
+	"github.com/go-acme/lego/acme"
+	"github.com/go-acme/lego/providers/dns"
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/kinvolk/lerobot/pkg/util"
