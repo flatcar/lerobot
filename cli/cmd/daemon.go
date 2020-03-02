@@ -25,7 +25,7 @@ func init() {
 
 	daemonCmd.Flags().String("authorized-keys-file", "", "Path to authorized_keys file to write (disabled when not set)")
 	daemonCmd.Flags().String("le-config", "./lets-encrypt.yaml", "Path to lerobot's Let's Encrypt config file")
-	daemonCmd.Flags().String("le-api", "https://acme-v01.api.letsencrypt.org/directory", "Let's Encrypt API URL")
+	daemonCmd.Flags().String("le-api", "https://acme-v02.api.letsencrypt.org/directory", "Let's Encrypt API URL")
 	daemonCmd.Flags().String("account-dir", "./accounts", "Path to directory where to store account data")
 	daemonCmd.Flags().String("certificate-dir", "./certificates", "Path to directory where to store certificate data")
 	daemonCmd.Flags().Duration("interval-seconds", 300, "Seconds to sleep between doing work")
