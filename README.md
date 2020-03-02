@@ -108,7 +108,24 @@ When testing, make sure to **not** use the Let's Encrypt production API but
 staging (can be set with `--le-url`):
 
 ```
-https://acme-staging.api.letsencrypt.org/directory
+https://acme-staging-v02.api.letsencrypt.org/directory
+```
+
+Example `lerobot daemon` invocation for testing:
+
+```
+./bin/lerobot daemon --le-api https://acme-staging-v02.api.letsencrypt.org/directory --le-config lets-encrypt.yaml
+```
+
+Example `lets-encrypt.yaml' file for testing:
+
+```
+accounts:
+  - email: michael+lerobot-testing@kinvolk.io
+certificates:
+  - account: michael+lerobot-testing@kinvolk.io
+    common_name: "*.example.com"
+    subject_alternative_names: []
 ```
 
 ## Certificate consumers
@@ -128,4 +145,4 @@ rsync -ave "ssh -i /etc/lerobot.pem" lerobot@example.com:certificates/michael+le
 This can be put into a systemd service triggered by a systemd timer once
 per day.
 
-[lego]: https://github.com/xenolf/lego
+[lego]: https://github.com/go-acme/lego
