@@ -271,7 +271,7 @@ func New(options *Options) (*Daemon, error) {
 		options:  options,
 	}
 	if err := daemon.loadConfig(); err != nil {
-		return nil, fmt.Errorf("failed to load config: %v", daemon.options.LEConfigPath, err)
+		return nil, fmt.Errorf("failed to load config %q: %v", daemon.options.LEConfigPath, err)
 	}
 
 	return daemon, nil
