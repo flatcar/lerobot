@@ -20,15 +20,17 @@ var daemonCmd = &cobra.Command{
 	Run:   daemonRun,
 }
 
+var defaultInterval, _ = time.ParseDuration("300s")
+
 func init() {
 	RootCmd.AddCommand(daemonCmd)
 
 	daemonCmd.Flags().String("authorized-keys-file", "", "Path to authorized_keys file to write (disabled when not set)")
 	daemonCmd.Flags().String("le-config", "./lets-encrypt.yaml", "Path to lerobot's Let's Encrypt config file")
-	daemonCmd.Flags().String("le-api", "https://acme-v01.api.letsencrypt.org/directory", "Let's Encrypt API URL")
+	daemonCmd.Flags().String("le-api", "https://acme-v02.api.letsencrypt.org/directory", "Let's Encrypt API URL")
 	daemonCmd.Flags().String("account-dir", "./accounts", "Path to directory where to store account data")
 	daemonCmd.Flags().String("certificate-dir", "./certificates", "Path to directory where to store certificate data")
-	daemonCmd.Flags().Duration("interval-seconds", 300, "Seconds to sleep between doing work")
+	daemonCmd.Flags().Duration("interval-seconds", defaultInterval, "Seconds to sleep between doing work")
 
 	viper.BindPFlags(daemonCmd.Flags())
 }
@@ -42,7 +44,7 @@ func daemonRun(cmd *cobra.Command, args []string) {
 		LEAPI:              viper.GetString("le-api"),
 		AccountDir:         viper.GetString("account-dir"),
 		CertificateDir:     viper.GetString("certificate-dir"),
-		Interval:           viper.GetDuration("interval-seconds") * time.Second,
+		Interval:           viper.GetDuration("interval-seconds"),
 	})
 	if err != nil {
 		log.Fatalf("Failed to init daemon: %v", err)

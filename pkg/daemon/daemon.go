@@ -20,15 +20,19 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/xenolf/lego/acme"
-	"github.com/xenolf/lego/providers/dns"
+	"github.com/go-acme/lego/v3/certcrypto"
+	legocert "github.com/go-acme/lego/v3/certificate"
+	"github.com/go-acme/lego/v3/lego"
+	legolog "github.com/go-acme/lego/v3/log"
+	"github.com/go-acme/lego/v3/providers/dns/route53"
+	"github.com/go-acme/lego/v3/registration"
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/kinvolk/lerobot/pkg/util"
 )
 
 func init() {
-	acme.Logger = log.New(os.Stderr, "[lego] ", log.LstdFlags)
+	legolog.Logger = log.New(os.Stderr, "[lego] ", log.LstdFlags)
 }
 
 type Daemon struct {
@@ -71,10 +75,12 @@ type Configuration struct {
 	Certificates []Certificate `yaml:"certificates"`
 }
 
+// legoAccount implements acme.User as required by lego.
+// https://go-acme.github.io/lego/usage/library/
 type legoAccount struct {
 	Email string `json:"email"`
 
-	Registration *acme.RegistrationResource `json:"registration"`
+	Registration *registration.Resource `json:"registration"`
 
 	privateKey crypto.PrivateKey
 }
@@ -83,7 +89,7 @@ func (a *legoAccount) GetEmail() string {
 	return a.Email
 }
 
-func (a *legoAccount) GetRegistration() *acme.RegistrationResource {
+func (a *legoAccount) GetRegistration() *registration.Resource {
 	return a.Registration
 }
 
@@ -150,24 +156,25 @@ func loadLegoAccount(accountDir, email string) (*legoAccount, error) {
 	return &account, nil
 }
 
-func loadACMEClient(url string, account *legoAccount) (*acme.Client, error) {
-	acmeClient, err := acme.NewClient(url, account, acme.RSA4096)
+func loadLegoClient(config *lego.Config) (*lego.Client, error) {
+	legoClient, err := lego.NewClient(config)
 	if err != nil {
 		return nil, err
 	}
 
-	provider, err := dns.NewDNSChallengeProviderByName("route53")
+	provider, err := route53.NewDNSProvider()
 	if err != nil {
 		return nil, err
 	}
 
-	acmeClient.SetChallengeProvider(acme.DNS01, provider)
-	acmeClient.ExcludeChallenges([]acme.Challenge{acme.HTTP01, acme.TLSSNI01})
+	if err := legoClient.Challenge.SetDNS01Provider(provider); err != nil {
+		return nil, err
+	}
 
-	return acmeClient, nil
+	return legoClient, nil
 }
 
-func writeCert(certificateDir string, certRes acme.CertificateResource) {
+func writeCert(certificateDir string, certRes *legocert.Resource) {
 	if err := os.MkdirAll(certificateDir, 0700); err != nil {
 		log.Printf("[ERROR] Unable to create certificate dir %q: %v", certificateDir, err)
 	}
@@ -177,22 +184,19 @@ func writeCert(certificateDir string, certRes acme.CertificateResource) {
 	metadataFile := path.Join(certificateDir, certRes.Domain+".json")
 	issueCertificateFile := path.Join(certificateDir, certRes.Domain+".issuer.crt")
 
-	err := util.WriteFileAtomic(certificateFile, certRes.Certificate, 0600)
-	if err != nil {
+	if err := util.WriteFileAtomic(certificateFile, certRes.Certificate, 0600); err != nil {
 		log.Printf("[ERROR] Unable to save Certificate for domain %q\n\t%v", certRes.Domain, err)
 		return
 	}
 
 	if certRes.IssuerCertificate != nil {
-		err = util.WriteFileAtomic(issueCertificateFile, certRes.IssuerCertificate, 0600)
-		if err != nil {
+		if err := util.WriteFileAtomic(issueCertificateFile, certRes.IssuerCertificate, 0600); err != nil {
 			log.Printf("[ERROR] Unable to save IssuerCertificate for domain %q\n\t%v", certRes.Domain, err)
 			return
 		}
 	}
 
-	err = util.WriteFileAtomic(privateKeyFile, certRes.PrivateKey, 0600)
-	if err != nil {
+	if err := util.WriteFileAtomic(privateKeyFile, certRes.PrivateKey, 0600); err != nil {
 		log.Printf("[ERROR] Unable to save PrivateKey for domain %q\n\t%v", certRes.Domain, err)
 		return
 	}
@@ -203,8 +207,7 @@ func writeCert(certificateDir string, certRes acme.CertificateResource) {
 		return
 	}
 
-	err = util.WriteFileAtomic(metadataFile, jsonBytes, 0600)
-	if err != nil {
+	if err := util.WriteFileAtomic(metadataFile, jsonBytes, 0600); err != nil {
 		log.Printf("[ERROR] Unable to save CertResource for domain %q\n\t%v", certRes.Domain, err)
 	}
 }
@@ -268,7 +271,7 @@ func New(options *Options) (*Daemon, error) {
 		options:  options,
 	}
 	if err := daemon.loadConfig(); err != nil {
-		return nil, fmt.Errorf("failed to load config: %v", daemon.options.LEConfigPath, err)
+		return nil, fmt.Errorf("failed to load config %q: %v", daemon.options.LEConfigPath, err)
 	}
 
 	return daemon, nil
@@ -325,20 +328,14 @@ func saveAccount(accountDir string, account *legoAccount) error {
 	return util.WriteFileAtomic(path.Join(accountDir, account.Email, "account.json"), jsonBytes, 0600)
 }
 
-func registerAccountAcceptTOS(accountDir string, account *legoAccount, client *acme.Client) error {
+func registerAccountAcceptTOS(accountDir string, account *legoAccount, client *lego.Client) error {
 	if account.Registration == nil {
-		reg, err := client.Register()
+		reg, err := client.Registration.Register(registration.RegisterOptions{TermsOfServiceAgreed: true})
 		if err != nil {
 			return err
 		}
 		account.Registration = reg
-		saveAccount(accountDir, account)
-	}
-	if account.Registration.Body.Agreement == "" {
-		if err := client.AgreeToTOS(); err != nil {
-			return err
-		}
-		saveAccount(accountDir, account)
+		return saveAccount(accountDir, account)
 	}
 	return nil
 }
@@ -369,20 +366,25 @@ func (d *Daemon) requestCertificate(certificate Certificate, force bool) {
 		return
 	}
 
-	account, err := loadLegoAccount(d.options.AccountDir, certificate.AccountEmail)
+	legoAccount, err := loadLegoAccount(d.options.AccountDir, certificate.AccountEmail)
 	if err != nil {
 		log.Printf("[ERROR] Failed to load account for %q: %v", certificate.AccountEmail, err)
 		return
 	}
 
-	acmeClient, err := loadACMEClient(d.options.LEAPI, account)
+	legoConfig := lego.NewConfig(legoAccount)
+
+	legoConfig.CADirURL = d.options.LEAPI
+	legoConfig.Certificate.KeyType = certcrypto.RSA4096
+
+	legoClient, err := loadLegoClient(legoConfig)
 	if err != nil {
-		log.Printf("[ERROR] Failed to load acme client: %v", err)
+		log.Printf("[ERROR] Failed to load lego client: %v", err)
 		return
 	}
 
-	if err := registerAccountAcceptTOS(d.options.AccountDir, account, acmeClient); err != nil {
-		log.Printf("[ERROR] Failed to register account %q and accept TOS: %v", account.Email, err)
+	if err := registerAccountAcceptTOS(d.options.AccountDir, legoAccount, legoClient); err != nil {
+		log.Printf("[ERROR] Failed to register account %q and accept TOS: %v", legoAccount.Email, err)
 		return
 	}
 
@@ -391,15 +393,17 @@ func (d *Daemon) requestCertificate(certificate Certificate, force bool) {
 	}
 	nameList = append(nameList, certificate.SAN...)
 
-	cert, failures := acmeClient.ObtainCertificate(nameList, true, nil, false)
-	if len(failures) > 0 {
-		for domain, acmeError := range failures {
-			log.Printf("[ERROR] Failed to obtain certificate for %q: %v", domain, acmeError.Error())
-		}
+	request := legocert.ObtainRequest{
+		Domains: nameList,
+	}
+
+	cert, err := legoClient.Certificate.Obtain(request)
+	if err != nil {
+		log.Printf("[ERROR] Failed to obtain certificate for %q: %v", certificate.CommonName, err)
 		return
 	}
 
-	writeCert(path.Join(d.options.CertificateDir, account.Email), cert)
+	writeCert(path.Join(d.options.CertificateDir, legoAccount.Email), cert)
 }
 
 func (d *Daemon) renewCertificates() {
@@ -485,6 +489,7 @@ func (d *Daemon) Shutdown(_ context.Context) error {
 }
 
 func equalNameLists(a, b []string) bool {
+	// log.Printf("[DEBUG] Comparing name lists:\n%v\n%v", a, b)
 	if a == nil && b == nil {
 		return true
 	}
