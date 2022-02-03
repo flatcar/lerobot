@@ -20,12 +20,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-acme/lego/v3/certcrypto"
-	legocert "github.com/go-acme/lego/v3/certificate"
-	"github.com/go-acme/lego/v3/lego"
-	legolog "github.com/go-acme/lego/v3/log"
-	"github.com/go-acme/lego/v3/providers/dns/route53"
-	"github.com/go-acme/lego/v3/registration"
+	"github.com/go-acme/lego/v4/certcrypto"
+	legocert "github.com/go-acme/lego/v4/certificate"
+	"github.com/go-acme/lego/v4/lego"
+	legolog "github.com/go-acme/lego/v4/log"
+	"github.com/go-acme/lego/v4/providers/dns/route53"
+	"github.com/go-acme/lego/v4/registration"
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/kinvolk/lerobot/pkg/util"
