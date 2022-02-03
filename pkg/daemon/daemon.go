@@ -66,6 +66,7 @@ type Certificate struct {
 	AccountEmail string   `yaml:"account"`
 	CommonName   string   `yaml:"common_name"`
 	SAN          []string `yaml:"subject_alternative_names"`
+	PreferredChain string `yaml:"preferred_chain"`
 
 	dir string
 }
@@ -395,6 +396,7 @@ func (d *Daemon) requestCertificate(certificate Certificate, force bool) {
 
 	request := legocert.ObtainRequest{
 		Domains: nameList,
+		PreferredChain: certificate.PreferredChain,
 	}
 
 	cert, err := legoClient.Certificate.Obtain(request)

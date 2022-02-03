@@ -82,6 +82,7 @@ accounts:
 certificates:
   - account: infra@example.com
     common_name: foo.example.com
+    preferred_chain: ISRG Root X1
     subject_alternative_names:
       - bar.example.com
       - baz.example.com
@@ -125,6 +126,7 @@ accounts:
 certificates:
   - account: infra@example.com
     common_name: "*.example.com"
+    preferred_chain: ""
     subject_alternative_names: []
 ```
 
