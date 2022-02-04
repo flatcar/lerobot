@@ -292,7 +292,7 @@ func (d *Daemon) Run() {
 			case <-sigChan:
 			}
 			if err := d.loadConfig(); err != nil {
-				log.Printf("[ERROR] Failed to reload config: %v")
+				log.Printf("[ERROR] Failed to reload config: %v", err)
 			} else {
 				log.Printf("[INFO] Configuration from %q loaded", d.options.LEConfigPath)
 			}
