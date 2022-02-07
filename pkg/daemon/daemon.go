@@ -376,7 +376,7 @@ func (d *Daemon) requestCertificate(certificate Certificate, force bool) {
 	legoConfig := lego.NewConfig(legoAccount)
 
 	legoConfig.CADirURL = d.options.LEAPI
-	legoConfig.Certificate.KeyType = certcrypto.RSA4096
+	legoConfig.Certificate.KeyType = certcrypto.RSA2048
 
 	legoClient, err := loadLegoClient(legoConfig)
 	if err != nil {
