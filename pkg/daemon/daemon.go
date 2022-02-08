@@ -20,12 +20,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/go-acme/lego/v3/certcrypto"
-	legocert "github.com/go-acme/lego/v3/certificate"
-	"github.com/go-acme/lego/v3/lego"
-	legolog "github.com/go-acme/lego/v3/log"
-	"github.com/go-acme/lego/v3/providers/dns/route53"
-	"github.com/go-acme/lego/v3/registration"
+	"github.com/go-acme/lego/v4/certcrypto"
+	legocert "github.com/go-acme/lego/v4/certificate"
+	"github.com/go-acme/lego/v4/lego"
+	legolog "github.com/go-acme/lego/v4/log"
+	"github.com/go-acme/lego/v4/providers/dns/route53"
+	"github.com/go-acme/lego/v4/registration"
 	yaml "gopkg.in/yaml.v2"
 
 	"github.com/kinvolk/lerobot/pkg/util"
@@ -66,6 +66,7 @@ type Certificate struct {
 	AccountEmail string   `yaml:"account"`
 	CommonName   string   `yaml:"common_name"`
 	SAN          []string `yaml:"subject_alternative_names"`
+	PreferredChain string `yaml:"preferred_chain"`
 
 	dir string
 }
@@ -375,7 +376,7 @@ func (d *Daemon) requestCertificate(certificate Certificate, force bool) {
 	legoConfig := lego.NewConfig(legoAccount)
 
 	legoConfig.CADirURL = d.options.LEAPI
-	legoConfig.Certificate.KeyType = certcrypto.RSA4096
+	legoConfig.Certificate.KeyType = certcrypto.RSA2048
 
 	legoClient, err := loadLegoClient(legoConfig)
 	if err != nil {
@@ -395,6 +396,7 @@ func (d *Daemon) requestCertificate(certificate Certificate, force bool) {
 
 	request := legocert.ObtainRequest{
 		Domains: nameList,
+		PreferredChain: certificate.PreferredChain,
 	}
 
 	cert, err := legoClient.Certificate.Obtain(request)
