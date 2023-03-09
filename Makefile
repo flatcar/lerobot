@@ -6,7 +6,7 @@ all: build
 .PHONY: build
 build:
 	go build \
-		-ldflags "-X github.com/kinvolk/lerobot/cli/cmd.version=$(VERSION)" \
+		-tags osusergo,netgo -ldflags "-linkmode external -extldflags '-static' -s -w -X github.com/kinvolk/lerobot/cli/cmd.version=$(VERSION)" \
 		-o bin/lerobot cli/main.go
 
 .PHONY: test
